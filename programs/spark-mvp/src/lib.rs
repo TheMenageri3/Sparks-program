@@ -12,7 +12,7 @@ pub use state::*;
 declare_id!("33RrYnFPia7wguALxCCA4inj4LQBdo7QVacKZiQ2i1nZ");
 
 #[program]
-pub mod spark_mvp {
+pub mod spark_program {
     use super::*;
 
     pub fn create_campaign(
