@@ -1,7 +1,7 @@
 use anchor_lang::{
     prelude::*,
-    system_program::{transfer, Transfer},
     solana_program::native_token::LAMPORTS_PER_SOL,
+    system_program::{transfer, Transfer},
 };
 
 use crate::error::SparkError;
@@ -34,7 +34,12 @@ pub struct Pledge<'info> {
         bump,
     )]
     pub backer_data: Account<'info, BackerData>,
-
+    #[account(
+        mut,
+        seeds = [campaign.key().as_ref()],
+        bump
+    )]
+    pub campaign_vault: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -53,7 +58,7 @@ impl<'info> Pledge<'info> {
 
         let cpi_accounts = Transfer {
             from: self.backer.to_account_info(),
-            to: self.campaign.to_account_info(),
+            to: self.campaign_vault.to_account_info(),
         };
 
         let pledge_amount_in_lamports = pledge_amount.checked_mul(LAMPORTS_PER_SOL).unwrap();

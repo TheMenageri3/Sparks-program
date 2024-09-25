@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("33RrYnFPia7wguALxCCA4inj4LQBdo7QVacKZiQ2i1nZ");
+declare_id!("t3i7Wt3aoqXzouwKJ8Q58pW8GMEYyUhHBg8YmckjeJD");
 
 #[program]
 pub mod spark_program {
@@ -34,6 +34,6 @@ pub mod spark_program {
     }
 
     pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
-        ctx.accounts.withdraw()
+        ctx.accounts.withdraw(&[ctx.bumps.campaign_vault])
     }
 }

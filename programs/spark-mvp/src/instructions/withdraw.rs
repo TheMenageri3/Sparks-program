@@ -25,15 +25,20 @@ pub struct Withdraw<'info> {
         bump = campaign.campaign_bump
     )]
     pub campaign: Account<'info, Campaign>,
-
+    #[account(
+        mut,
+        seeds = [campaign.key().as_ref()],
+        bump
+    )]
+    pub campaign_vault: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
 impl<'info> Withdraw<'info> {
-    pub fn withdraw(&mut self) -> Result<()> {
+    pub fn withdraw(&mut self, vault_bump: &[u8]) -> Result<()> {
         // Check if the funding goal is met
         require!(
-            lamports_to_sol(self.campaign.to_account_info().lamports())
+            lamports_to_sol(self.campaign_vault.to_account_info().lamports())
                 >= self.campaign.funding_goal as f64,
             SparkError::CampaignFailedNotEnoughFunds
         );
@@ -44,24 +49,19 @@ impl<'info> Withdraw<'info> {
             SparkError::CampaignStillRunning
         );
 
-        let campaign_seeds = self.campaign.campaign_seed.to_le_bytes();
+        // Set up seeds for the vault PDA
+        let campaign_key = self.campaign.key();
+        let campaign_vault_seeds = &[campaign_key.as_ref(), &[vault_bump[0]]];
+        let signer = &[&campaign_vault_seeds[..]];
 
-        let campaign_signer_seeds: &[&[&[u8]]] = &[&[
-            b"campaign",
-            campaign_seeds.as_ref(),
-            self.campaign.creator.as_ref(),
-            &[self.campaign.campaign_bump],
-        ]];
-
+        // Create the CPI context and perform the transfer
         let cpi_program = self.system_program.to_account_info();
-
         let cpi_accounts = Transfer {
-            from: self.campaign.to_account_info(),
+            from: self.campaign_vault.to_account_info(),
             to: self.creator.to_account_info(),
         };
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
 
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, campaign_signer_seeds);
-
-        transfer(cpi_ctx, self.campaign.to_account_info().lamports())
+        transfer(cpi_ctx, self.campaign_vault.to_account_info().lamports())
     }
 }
