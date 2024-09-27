@@ -1,6 +1,5 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::native_token::LAMPORTS_PER_SOL,
     system_program::{transfer, Transfer},
 };
 
@@ -44,9 +43,9 @@ pub struct Pledge<'info> {
 }
 
 impl<'info> Pledge<'info> {
-    pub fn pledge(&mut self, pledge_amount: u64, bumps: &PledgeBumps) -> Result<()> {
+    pub fn pledge(&mut self, pledge_amount_in_lamports: u64, bumps: &PledgeBumps) -> Result<()> {
         // Pledged amount must be more than 0
-        require!(pledge_amount > 0, SparkError::PledgeAmountZero);
+        require!(pledge_amount_in_lamports > 0, SparkError::PledgeAmountZero);
 
         // Check if the campaign has already ended
         require!(
@@ -61,8 +60,6 @@ impl<'info> Pledge<'info> {
             to: self.campaign_vault.to_account_info(),
         };
 
-        let pledge_amount_in_lamports = pledge_amount.checked_mul(LAMPORTS_PER_SOL).unwrap();
-
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
         transfer(cpi_ctx, pledge_amount_in_lamports)?;
@@ -70,11 +67,11 @@ impl<'info> Pledge<'info> {
         if self.backer_data.backer_amount == 0 {
             self.backer_data.set_inner(BackerData {
                 backer_pk: self.backer.key(),
-                backer_amount: pledge_amount,
+                backer_amount: pledge_amount_in_lamports,
                 backer_data_bump: bumps.backer_data,
             });
         } else {
-            self.backer_data.backer_amount += pledge_amount;
+            self.backer_data.backer_amount += pledge_amount_in_lamports;
         }
 
         Ok(())

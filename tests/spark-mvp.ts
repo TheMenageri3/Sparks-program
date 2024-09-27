@@ -13,7 +13,7 @@ async function getAccountBalance(
   pk: PublicKey
 ): Promise<number> {
   let amount = (await connection.getAccountInfo(pk)).lamports;
-  return amount / LAMPORTS_PER_SOL;
+  return amount;
 }
 
 /**
@@ -50,16 +50,14 @@ describe("Spark test", () => {
   const backer = anchor.web3.Keypair.generate(); // Create a new keypair for the backer
   const campaignSeed = new anchor.BN(Math.floor(Math.random() * 9000) + 1000); // Random seed for campaign
   const endingAt = new anchor.BN(Math.floor(Date.now() / 1000) + 60); // Set the campaign end time (60 seconds later)
-  const fundingGoal = new anchor.BN(5); // Set the funding goal to 5 SOL
-  const pledgeAmount = new anchor.BN(5); // Set the pledge amount to 5 SOL
+  const fundingGoal = new anchor.BN(5 * LAMPORTS_PER_SOL); // Set the funding goal to 5 SOL
+  const pledgeAmount = new anchor.BN(5 * LAMPORTS_PER_SOL); // Set the pledge amount to 5 SOL
   let campaign: PublicKey; // Store the campaign public key (to be derived)
   let backerData: PublicKey; // Store the backer data public key (to be derived)
   let campaignVault: PublicKey; // Store the campaign vault public key (to be derived)
 
   // Test to derive the program-derived addresses (PDAs) for the campaign, backer data, and vault
   it("Finds the PDAs and the Vault", async () => {
-    console.log(endingAt.toString());
-
     // Derive the campaign PDA using the campaign seed and creator public key
     campaign = PublicKey.findProgramAddressSync(
       [
@@ -119,7 +117,7 @@ describe("Spark test", () => {
     assert.equal(campaignFetched.campaignSeed.toString(), campaignSeed.toString(), `Campaign's seed should be ${campaignSeed.toString()}`);
     assert.equal(campaignFetched.creator.toString(), creator.publicKey.toString(), `Campaign's creator should be ${creator.publicKey.toString()}`);
     assert.equal(campaignFetched.endingAt.toString(), endingAt.toString(), `Campaign should end at ${endingAt.toString()}`);
-    assert.equal(campaignFetched.fundingGoal.toString(), fundingGoal.toString(), `Campaign's funding goal should be ${fundingGoal.toString()}`);
+    assert.equal(campaignFetched.fundingGoalInLamports.toString(), fundingGoal.toString(), `Campaign's funding goal should be ${fundingGoal.toString()}`);
     assert.equal(campaignFetched.isFinished, false);
   });
 

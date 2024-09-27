@@ -29,7 +29,7 @@ impl<'info> CreateCampaign<'info> {
         &mut self,
         campaign_seed: u64,
         ending_at: i64,
-        funding_goal: u64,
+        funding_goal_in_lamports: u64,
         bumps: &CreateCampaignBumps,
     ) -> Result<()> {
         self.campaign.set_inner(Campaign {
@@ -37,7 +37,7 @@ impl<'info> CreateCampaign<'info> {
             creator: self.creator.key(),
             started_at: Clock::get()?.unix_timestamp,
             ending_at,
-            funding_goal,
+            funding_goal_in_lamports,
             is_finished: false,
             campaign_bump: bumps.campaign,
         });

@@ -6,19 +6,18 @@ pub struct Campaign {
     pub creator: Pubkey,
     pub started_at: i64,
     pub ending_at: i64,
-    pub funding_goal: u64,
+    pub funding_goal_in_lamports: u64,
     pub is_finished: bool,
     pub campaign_bump: u8,
 }
 
 impl Space for Campaign {
-    const INIT_SPACE: usize = 
-        8 + // ACCOUNT DISCRIMINATOR
+    const INIT_SPACE: usize = 8 + // ACCOUNT DISCRIMINATOR
         8 + // CAMPAIGN SEED
         32 + // CREATOR
         8 + // STARTED AT
         8 + // ENDING AT
         8 + // FUNDING GOAL
         1 + // IS FINISHED
-        1; // CAMPAIGN BUMP 
+        1; // CAMPAIGN BUMP
 }

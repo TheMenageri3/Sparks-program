@@ -1,4 +1,3 @@
-use anchor_lang::solana_program::native_token::lamports_to_sol;
 use anchor_lang::{
     prelude::*,
     system_program::{transfer, Transfer},
@@ -38,8 +37,8 @@ impl<'info> Withdraw<'info> {
     pub fn withdraw(&mut self, vault_bump: &[u8]) -> Result<()> {
         // Check if the funding goal is met
         require!(
-            lamports_to_sol(self.campaign_vault.to_account_info().lamports())
-                >= self.campaign.funding_goal as f64,
+            self.campaign_vault.to_account_info().lamports()
+                >= self.campaign.funding_goal_in_lamports,
             SparkError::CampaignFailedNotEnoughFunds
         );
 
@@ -61,6 +60,8 @@ impl<'info> Withdraw<'info> {
             to: self.creator.to_account_info(),
         };
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+
+        self.campaign.is_finished = true;
 
         transfer(cpi_ctx, self.campaign_vault.to_account_info().lamports())
     }
